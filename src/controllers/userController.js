@@ -156,7 +156,7 @@ const loginUser = asyncHandler(async (req, res) => {
   });
 
   if (!user) {
-    throw new Error(404, "User not found");
+    throw new ApiError(404, "User not found");
   }
 
   //validate password
@@ -164,7 +164,7 @@ const loginUser = asyncHandler(async (req, res) => {
   const isPasswordValid = await user.isPasswordCorrect(password);
 
   if (!isPasswordValid) {
-    throw new Error(404, "Invalid credentials");
+    throw new ApiError(404, "Invalid credentials");
   }
 
   const { accessToken, refreshToken } = await generateAccessAndRefreshToken(
@@ -202,6 +202,9 @@ const loginUser = asyncHandler(async (req, res) => {
 });
 
 const logoutUser = asyncHandler(async (req, res) => {
+  if (!req.user) {
+    throw new ApiError(400, "User is not logged in");
+  }
   await User.findByIdAndUpdate(
     req.user._id,
     {
@@ -266,7 +269,10 @@ const refreshAccessToken = asyncHandler(async (req, res) => {
         )
       );
   } catch (error) {
-    throw new Error(500, "Something went wrong while refreshing access token");
+    throw new ApiError(
+      500,
+      "Something went wrong while refreshing access token"
+    );
   }
 });
 
@@ -414,7 +420,7 @@ const getUserChannelProfile = asyncHandler(async (req, res) => {
         },
         isSubscribed: {
           $cond: {
-            if: { $in: [req.user?._id, "subscribers".subscriber] },
+            if: { $in: [req.user?._id, "$subscribers".subscriber] },
             then: true,
             else: false,
           },
@@ -495,7 +501,7 @@ const getWatchHistory = asyncHandler(async (req, res) => {
     .json(
       new ApiResponse(
         200,
-        user[0]?.watchHisory,
+        user[0]?.watchHistory,
         "Watch history fetched successfully"
       )
     );
