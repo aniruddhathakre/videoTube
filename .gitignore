@@ -1,0 +1,10 @@
+# Ignore node_modules and env
+node_modules/
+.env
+package-lock.json
+.vscode/
+dist/
+build/
+.cache/
+*.log
+.DS_Store
